@@ -1,0 +1,153 @@
+/* ===== 全局重置：去掉浏览器默认的边距 ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ===== 整个页面的背景和文字 ===== */
+body {
+  font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: #faf8ef;      /* 米白色背景 */
+  color: #776e65;           /* 棕灰色文字 */
+  display: flex;
+  justify-content: center;  /* 内容水平居中 */
+  padding: 20px 14px 40px;  /* 上 右 下 左 的内边距 */
+  min-height: 100vh;        /* 至少占满一整个屏幕高度 */
+}
+/* ===== 最外层容器：决定网页多宽 ===== */
+.container {
+  width: min(500px, calc(100vw - 28px));
+}
+/* min(500px, ...) 意思：最多 500px；屏幕小就按屏幕宽度来（手机也能用） */
+
+/* ===== 顶部一排：标题在左，分数在右 ===== */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+h1 {
+  font-size: 60px;
+  color: #776e65;
+}
+
+.subtitle {
+  margin-bottom: 14px;
+  font-size: 15px;
+}
+
+/* ===== 两个分数框 ===== */
+.scores {
+  display: flex;
+  gap: 8px;               /* 两个框之间的间距 */
+}
+
+.score-box {
+  background: #bbada0;    /* 深一点的棕色 */
+  color: #ffffff;
+  min-width: 90px;
+  padding: 6px 14px;
+  text-align: center;
+  border-radius: 8px;     /* 圆角 */
+}
+
+.score-label { font-size: 12px; color: #eee4da; }
+.score-value { font-size: 24px; font-weight: 700; }
+
+/* ===== 棋盘大盒子 ===== */
+.board {
+  position: relative;     /* 让里面的方块可以相对它来定位 */
+  width: 100%;
+  aspect-ratio: 1 / 1;    /* 宽高比 1:1 = 永远正方形 */
+  background: #bbada0;
+  border-radius: 12px;
+  user-select: none;      /* 快速连点时不选中文字 */
+  touch-action: none;     /* 手机上由我们处理滑动，不让页面跟着滚 */
+}
+
+/* 16 个背景小格子（位置由 script.js 计算后填进来） */
+.cell {
+  position: absolute;
+  background: rgba(238, 228, 218, 0.35);
+  border-radius: 6px;
+}
+
+/* 会动的数字方块（也是 script.js 生成） */
+.tile {
+  position: absolute;
+  display: flex;
+  align-items: center;      /* 数字上下居中 */
+  justify-content: center;  /* 数字左右居中 */
+  font-weight: 700;
+  color: #f9f6f2;
+  border-radius: 6px;
+  transition: left 0.12s ease, top 0.12s ease; /* 移动时平滑过渡 */
+}
+
+/* 新方块出现：从 0 放大到 1 */
+.tile.appear {
+  animation: appear 0.18s ease;
+}
+@keyframes appear {
+  from { transform: scale(0); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+/* 合并时抖一下 */
+.tile.merged {
+  animation: merged 0.18s ease;
+}
+@keyframes merged {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+/* ===== 遮罩层：游戏结束/胜利时盖在棋盘上 ===== */
+.overlay {
+  position: absolute;
+  inset: 0;               /* 上右下左都=0，即铺满整个棋盘 */
+  display: none;          /* 默认隐藏 */
+  align-items: center;
+  justify-content: center;
+  background: rgba(238, 228, 218, 0.75); /* 半透明米色 */
+  border-radius: 12px;
+  z-index: 10;            /* 盖在最上层 */
+}
+
+.overlay.show {
+  display: flex;          /* JS 加上 show 这个 class 时，就显示出来 */
+}
+
+.overlay-inner { text-align: center; }
+.overlay-title { font-size: 44px; font-weight: 700; margin-bottom: 8px; }
+.overlay-text  { font-size: 16px; margin-bottom: 16px; }
+
+/* ===== 按钮 ===== */
+.btn {
+  background: #8f7a66;
+  color: #f9f6f2;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;        /* 鼠标放上去变成小手 */
+}
+
+.btn:hover { background: #9f8b77; }  /* 悬停时变亮一点 */
+
+.controls {
+  text-align: center;
+  margin-top: 18px;
+}
+
+/* ===== 底部操作提示 ===== */
+.howto {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.8;
+}
