@@ -15,6 +15,7 @@ const overlayTitle = document.getElementById('overlayTitle');
 const overlayText = document.getElementById('overlayText');
 const overlayBtn = document.getElementById('overlayBtn');
 const newGameBtn = document.getElementById('newGameBtn');
+const undoBtn = document.getElementById('undoBtn');
 
 // ---------- 游戏状态 ----------
 let grid;                 // 逻辑棋盘：grid[行][列]，每格是 null 或 { value, id }
@@ -27,6 +28,7 @@ let moveToken = 0;        // 用来取消过期的动画收尾
 let overlayMode = 'over'; // 弹窗是"赢了(win)"还是"结束(over)"
 let cellEls = [];         // 16 个背景格子的 DOM
 let geo = null;           // 棋盘尺寸参数（自适应屏幕）
+let history = [];   // 撤销用的"历史照片"数组
 
 // ---------- 计算棋盘几何参数（宽不同，格子大小就不同） ----------
 function getGeo() {
@@ -262,11 +264,79 @@ function canMove() {
   return false;
 }
 
+// ---------- 把当前棋盘的数字复制一份（拍照片） ----------
+function copyValues() {
+  const arr = [];
+  for (let r = 0; r < SIZE; r++) {
+    const row = [];
+    for (let c = 0; c < SIZE; c++) {
+      row.push(grid[r][c] ? grid[r][c].value : 0);
+    }
+    arr.push(row);
+  }
+  return arr;
+}
+
+// ---------- 按一组数字，把整个棋盘重新画出来 ----------
+function rebuildFromValues(values, newScore) {
+  // 1) 清掉画面上的所有方块
+  tilesById.forEach(({ el }) => el.remove());
+  tilesById.clear();
+  nextId = 1;
+
+  // 2) 重建逻辑棋盘 + 方块
+  grid = [];
+  for (let r = 0; r < SIZE; r++) {
+    const row = [];
+    for (let c = 0; c < SIZE; c++) {
+      const v = values[r][c];
+      if (v === 0) {
+        row.push(null);
+      } else {
+        const obj = { value: v, id: nextId++, r, c };
+        row.push(obj);
+        const el = createTileEl(obj);
+        el.classList.remove('appear');  // 撤销时不用"弹出"动画
+        tilesById.set(obj.id, { obj, el });
+      }
+    }
+    grid.push(row);
+  }
+
+  // 3) 恢复分数
+  score = newScore;
+  scoreEl.textContent = score;
+  const best = Math.max(loadBest(), score);
+  saveBest(best);
+  bestEl.textContent = best;
+}
+
+// ---------- 撤销上一步 ----------
+function undo() {
+  if (history.length === 0) return;  // 没历史可撤销
+
+  if (busy) {           // 如果动画还没播完，就取消它的"收尾工作"
+    moveToken++;        // 让 setTimeout 里的收尾作废
+    busy = false;
+  }
+
+  const last = history.pop();
+  rebuildFromValues(last.values, last.score);
+  hideOverlay();
+  updateUndoBtn();
+}
+
+// ---------- 没得撤销时，把按钮变灰 ----------
+function updateUndoBtn() {
+  undoBtn.disabled = history.length === 0;
+}
+
 // ---------- 执行一次移动（四大天王：左/右/上/下都走这里） ----------
 function move(dir) {
   if (busy) return;                                    // 动画没放完，先不理
   if (overlay.classList.contains('show')) return;      // 弹窗显示中，先不理
 
+  const snapshot = { values: copyValues(), score: score };  // 先拍张"移动前"的照片
   const before = gridSignature();
   const lines = buildLines(dir);
   const allMerges = [];
@@ -280,6 +350,10 @@ function move(dir) {
   }
 
   if (gridSignature() === before) return;  // 推了但没变化（撞墙了）
+    // 确认是"有效的一步"，才把照片存进历史
+  history.push(snapshot);
+  if (history.length > 20) history.shift();  // 只保留最近 20 步
+  updateUndoBtn();
 
   busy = true;
   const token = ++moveToken;
@@ -351,6 +425,8 @@ function newGame() {
   score = 0;
   wonShown = false;
   busy = false;
+  history = [];        // 新游戏清空撤销历史
+  updateUndoBtn();
   hideOverlay();
   updateScore(0);
   addRandomTile();          // 开局给两个方块
@@ -364,9 +440,17 @@ const KEY_DIRS = {
   W: 'up', S: 'down', A: 'left', D: 'right'
 };
 document.addEventListener('keydown', (e) => {
+  // Ctrl + Z 撤销
+   if (e.ctrlKey && (e.key === 'z' || e.key === 'Z')) {
+    e.preventDefault();
+    if (e.repeat) return;   // 【新增】按住不放时，只响应第一次
+    undo();
+    return;
+  }
+
   const dir = KEY_DIRS[e.key];
   if (dir) {
-    e.preventDefault();   // 别让方向键把页面滚走
+    e.preventDefault();
     move(dir);
   }
 });
@@ -380,6 +464,11 @@ overlayBtn.addEventListener('click', () => {
   if (overlayMode === 'win') hideOverlay(); // 赢了选"继续挑战"
   else newGame();                            // 结束就重开
   overlayBtn.blur();
+});
+
+undoBtn.addEventListener('click', () => {
+  undo();
+  undoBtn.blur();
 });
 
 // ---------- 手机：滑动操作 ----------

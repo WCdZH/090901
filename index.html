@@ -3,50 +3,61 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>2048</title>
+  <title>登录 - 2048</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="favicon.svg" />
 </head>
+<body class="login-body">
+  <div class="login-box">
+    <h1 class="login-title">欢迎回来</h1>
+    <p class="login-subtitle">登录后开始游戏</p>
 
-<body>
-  <div class="container">
-    <header>
-      <h1>2048</h1>
-      <div class="scores">
-        <div class="score-box">
-          <div class="score-label">分数</div>
-          <div class="score-value" id="score">0</div>
-        </div>
-        <div class="score-box">
-          <div class="score-label">最高分</div>
-          <div class="score-value" id="best">0</div>
-        </div>
-      </div>
-    </header>
+    <label class="login-label" for="username">用户名</label>
+    <input class="login-input" id="username" type="text" placeholder="请输入用户名" />
 
-    <p class="subtitle">合并相同数字，向 <b>2048</b> 进发！</p>
-        <div class="board" id="board">
-      <!-- 16 个背景小格子以后由 script.js 自动生成 -->
+    <label class="login-label" for="password">密码</label>
+    <input class="login-input" id="password" type="password" placeholder="请输入密码" />
 
-      <div class="overlay" id="overlay">
-        <div class="overlay-inner">
-          <div class="overlay-title" id="overlayTitle"></div>
-          <div class="overlay-text" id="overlayText"></div>
-          <button class="btn" id="overlayBtn">再来一局</button>
-        </div>
-      </div>
-    </div>
+    <button class="btn login-btn" id="loginBtn">登 录</button>
+    <p class="login-msg" id="loginMsg"></p>
+  </div>
 
-    <div class="controls">
-      <button class="btn" id="newGameBtn">新游戏</button>
-    </div>
+  <script>
+    const nameInput = document.getElementById('username');
+    const pwdInput = document.getElementById('password');
+    const loginBtn = document.getElementById('loginBtn');
+    const msg = document.getElementById('loginMsg');
 
-    <p class="howto">
-      操作：键盘 <b>↑ ↓ ← →</b> 或 <b>W A S D</b><br />
-      手机 / 平板上：直接在棋盘上<b>滑动</b>
-    </p>
+    // ① 打开页面时：如果之前记住过用户名，就自动填上
+    nameInput.value = localStorage.getItem('login_name') || '';
 
-      </div>
+    // ② 登录逻辑抽成一个函数（按钮和回车都能复用）
+    function doLogin() {
+      const name = nameInput.value.trim();
+      const pwd = pwdInput.value;
 
-  <script src="script.js"></script>
+      if (name === '' || pwd === '') {
+        msg.textContent = '用户名和密码不能为空';
+        return;
+      }
+      if (pwd.length < 6) {
+        msg.textContent = '密码至少要 6 位';
+        return;
+      }
+
+      localStorage.setItem('login_name', name); // 记住用户名
+      window.location.href = 'game.html';       // 进入游戏
+    }
+
+    // ③ 点按钮登录
+    loginBtn.addEventListener('click', doLogin);
+
+    // ④ 在用户名或密码框里按回车，也能登录
+    [nameInput, pwdInput].forEach((input) => {
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') doLogin();
+      });
+    });
+  </script>
 </body>
 </html>

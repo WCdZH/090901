@@ -151,3 +151,55 @@ h1 {
   font-size: 14px;
   line-height: 1.8;
 }
+
+/* ===== 登录页 ===== */
+.login-body {
+  align-items: center;          /* 让登录卡片在屏幕中间（垂直方向） */
+}
+
+.login-box {
+  width: min(360px, calc(100vw - 40px));
+  background: #ffffff;
+  padding: 28px 24px;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);  /* 卡片阴影，更有立体感 */
+  text-align: center;
+}
+
+.login-title { font-size: 30px; margin-bottom: 6px; }
+.login-subtitle { font-size: 14px; color: #a89d92; margin-bottom: 20px; }
+
+.login-label {
+  display: block;
+  text-align: left;
+  font-size: 13px;
+  margin: 12px 0 6px;
+}
+
+.login-input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 15px;
+  border: 1px solid #d9d0c6;
+  border-radius: 8px;
+  outline: none;
+}
+
+.login-input:focus { border-color: #8f7a66; }  /* 输入时边框变深 */
+
+.login-btn { width: 100%; margin-top: 20px; }
+
+.login-msg {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #d9534f;      /* 提示文字用红色 */
+  min-height: 18px;    /* 先占好位置，避免提示出现时页面跳动 */
+}
+
+/* ===== 撤销按钮 ===== */
+.controls .btn + .btn { margin-left: 10px; }   /* 两个按钮之间留点缝 */
+
+.btn:disabled {
+  opacity: 0.45;          /* 变灰 */
+  cursor: not-allowed;    /* 鼠标变成禁止符号 */
+}
